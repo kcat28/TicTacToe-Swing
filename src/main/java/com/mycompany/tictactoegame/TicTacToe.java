@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -22,6 +23,7 @@ public final class TicTacToe implements ActionListener {
     Random random = new Random();
     JFrame frame = new JFrame();
     JPanel title_Panel = new JPanel();
+    JPanel menu_Panel = new JPanel();
     JPanel button_Panel = new JPanel();
     JLabel textfield = new JLabel();
     JButton[] buttons = new JButton[9];
@@ -31,9 +33,14 @@ public final class TicTacToe implements ActionListener {
     public static final int PLAYER_O = -1;
     public static final int EMPTY = 0;
     
-     TicTacToe() {
+    public TicTacToe() {
+        initializeGame();
+    }
+    
+      private void initializeGame() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800,800);
+        frame.setResizable(false);
         frame.getContentPane().setBackground(new Color (50,50,50));
         frame.setLayout(new BorderLayout());
         frame.setVisible(true);
@@ -43,7 +50,23 @@ public final class TicTacToe implements ActionListener {
         textfield.setFont(new Font("Poppins", Font.BOLD, 60));
         textfield.setHorizontalAlignment(JLabel.CENTER);
         textfield.setText("Tic-Tac-Toe");
-        textfield.setOpaque(true);
+        textfield.setOpaque(true); 
+        
+        menu_Panel.setLayout(new FlowLayout());
+        menu_Panel.setBounds(0, 0, 800, 100);
+        JButton retry = new JButton("Retry again"){{
+                setFocusable(false);
+                addActionListener(e -> restartGame());
+                
+        }};
+        JButton quit = new JButton("Quit"){{
+                setFocusable(false);
+               addActionListener(e -> frame.dispose());
+        }};
+        
+        
+        menu_Panel.add(retry);
+        menu_Panel.add(quit);
         
         title_Panel.setLayout(new BorderLayout());
         title_Panel.setBounds(0,0,800,100);
@@ -62,11 +85,18 @@ public final class TicTacToe implements ActionListener {
         title_Panel.add(textfield);
         frame.add(title_Panel, BorderLayout.NORTH);
         frame.add(button_Panel);
+        frame.add(menu_Panel, BorderLayout.SOUTH);
         frame.setLocationRelativeTo(null);
         
         
         firstTurn();
     }
+       
+    private void restartGame() {
+        frame.dispose(); // Dispose the current frame
+        SwingUtilities.invokeLater(() -> new TicTacToe());
+    }
+     
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -82,7 +112,7 @@ public final class TicTacToe implements ActionListener {
                         check();
                         if (!player1_turn) {
                             check();   
-                            if (!isBoardFull()) aiMove();                         
+                            if (!check()) aiMove();                         
                         }
                              
                     }
@@ -107,63 +137,63 @@ public final class TicTacToe implements ActionListener {
             aiMove();
         }
     }
-    public void check(){
+    public boolean check(){
         // X CHECK   
         if (
                 (buttons[0].getText() == "X") &&
                 (buttons[1].getText() == "X") &&
                 (buttons[2].getText() == "X") ){
             Xwins(0, 1, 2);
-            return;
+            return true;
         }
         if (
                 (buttons[3].getText() == "X") &&
                 (buttons[4].getText() == "X") &&
                 (buttons[5].getText() == "X") ){
             Xwins(3, 4, 5);
-            return;
+            return true;
         }
         if (
                 (buttons[6].getText() == "X") &&
                 (buttons[7].getText() == "X") &&
                 (buttons[8].getText() == "X") ){
             Xwins(6, 7, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[0].getText() == "X") &&
                 (buttons[3].getText() == "X") &&
                 (buttons[6].getText() == "X") ){
             Xwins(0, 3, 6);
-            return;
+            return true;
         }
         if (
                 (buttons[1].getText() == "X") &&
                 (buttons[4].getText() == "X") &&
                 (buttons[7].getText() == "X") ){
             Xwins(1, 4, 7);
-            return;
+            return true;
         }
         if (
                 (buttons[2].getText() == "X") &&
                 (buttons[5].getText() == "X") &&
                 (buttons[8].getText() == "X") ){
             Xwins(2, 5, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[0].getText() == "X") &&
                 (buttons[4].getText() == "X") &&
                 (buttons[8].getText() == "X") ){
             Xwins(0, 4, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[2].getText() == "X") &&
                 (buttons[4].getText() == "X") &&
                 (buttons[6].getText() == "X") ){
             Xwins(2, 4, 6);
-            return;
+            return true;
         }
         // O CHECK
         
@@ -172,62 +202,63 @@ public final class TicTacToe implements ActionListener {
                 (buttons[1].getText() == "O") &&
                 (buttons[2].getText() == "O") ){
             Owins(0, 1, 2);
-            return;
+            return true;
         }
         if (
                 (buttons[3].getText() == "O") &&
                 (buttons[4].getText() == "O") &&
                 (buttons[5].getText() == "O") ){
             Owins(3, 4, 5);
-            return;
+            return true;
         }
         if (
                 (buttons[6].getText() == "O") &&
                 (buttons[7].getText() == "O") &&
                 (buttons[8].getText() == "O") ){
             Owins(6, 7, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[0].getText() == "O") &&
                 (buttons[3].getText() == "O") &&
                 (buttons[6].getText() == "O") ){
             Owins(0, 3, 6);
-            return;
+            return true;
         }
         if (
                 (buttons[1].getText() == "O") &&
                 (buttons[4].getText() == "O") &&
                 (buttons[7].getText() == "O") ){
             Owins(1, 4, 7);
-            return;
+            return true;
         }
         if (
                 (buttons[2].getText() == "O") &&
                 (buttons[5].getText() == "O") &&
                 (buttons[8].getText() == "O") ){
             Owins(2, 5, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[0].getText() == "O") &&
                 (buttons[4].getText() == "O") &&
                 (buttons[8].getText() == "O") ){
             Owins(0, 4, 8);
-            return;
+            return true;
         }
         if (
                 (buttons[2].getText() == "O") &&
                 (buttons[4].getText() == "O") &&
                 (buttons[6].getText() == "O") ){
             Owins(2, 4, 6);
-            return;
+            return true;
         } 
         
-        if (!isBoardFull()) {
-        return; // Exit the method early if it's a tie
+        if (isBoardFull()) {
+            tie();
+            return true; // Exit the method early if it's a tie
     }
-         tie();
+         return false;
     }
     public void Xwins(int a, int b, int c){
         buttons[a].setBackground(Color.green);
@@ -379,85 +410,82 @@ public final class TicTacToe implements ActionListener {
         return false;
     }
     
- private int evaluate(int[][] board, int player) {
+private int evaluate(int[][] board, int player) {
     int score = 0;
-    
-    // Check rows and columns
+    int opponent = (player == PLAYER_X) ? PLAYER_O : PLAYER_X;
+
+    // Check rows and columns for winning conditions and immediate threats
     for (int i = 0; i < 3; i++) {
-        if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {         // check rows = e.g., XXX. if true, score +10, else -10 since assumed the move was made by opposite player
+        // Check rows
+        if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
             if (board[i][0] == player) score += 10;
-            else if (board[i][0] != EMPTY) score -= 10;
+            else if (board[i][0] == opponent) score -= 20; // Increased penalty for opponent's win
         }
-        if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {         // check cols... 
+        // Check columns
+        if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
             if (board[0][i] == player) score += 10;
-            else if (board[0][i] != EMPTY) score -= 10;
+            else if (board[0][i] == opponent) score -= 20; // Increased penalty for opponent's win
         }
     }
 
-    // Check diagonals                  
+    // Check diagonals for winning conditions and immediate threats
     if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
         if (board[0][0] == player) score += 10;
-        else if (board[0][0] != EMPTY) score -= 10;
+        else if (board[0][0] == opponent) score -= 20; // Increased penalty for opponent's win
     }
     if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
         if (board[0][2] == player) score += 10;
-        else if (board[0][2] != EMPTY) score -= 10;
+        else if (board[0][2] == opponent) score -= 20; // Increased penalty for opponent's win
     }
 
     // Add weights to certain positions
-    if (board[1][1] == player) score += 5; // Center
+    if (board[1][1] == player) score += 8; // Increased weight for the center
     if ((board[0][0] == player && board[2][2] == player) || (board[0][2] == player && board[2][0] == player)) score += 3; // Diagonals
     if ((board[0][1] == player && board[2][1] == player) || (board[1][0] == player && board[1][2] == player)) score += 2; // Middle rows/columns
     if ((board[0][0] == player && board[0][2] == player) || (board[2][0] == player && board[2][2] == player)) score += 2; // Top and bottom edges
     if ((board[0][0] == player && board[2][1] == player) || (board[0][1] == player && board[2][0] == player) || (board[0][2] == player && board[2][1] == player)) score += 1; // Top and bottom corners
-    
-    // Check for opponent's almost-wins (indicate potential threat)
-    int opponent = (player == PLAYER_X) ? PLAYER_O : PLAYER_X;
-    if (score < 10) {       //  only enters when game is not yet decided
-        // Check rows for opponent almost-wins
-    }
-    for (int i = 0; i < 3; i++) {
-        if (board[i][0] == opponent && board[i][1] == opponent && board[i][2] == EMPTY) {   // when opponent is in a strong position for win e.g., XX_ row penalizes AI by -5 to indicate threat
-            score -= 5; // Adjust score for opponent's almost-win
-        } else if (board[i][0] == opponent && board[i][1] == EMPTY && board[i][2] == opponent) {
-            score -= 5; // Adjust score for opponent's almost-win
-        } else if (board[i][0] == EMPTY && board[i][1] == opponent && board[i][2] == opponent) {
-            score -= 5; // Adjust score for opponent's almost-win
-        }
-    }
 
-    // Check columns for opponent almost-wins
+    // Check for opponent's almost-wins (indicate potential threat)
     for (int i = 0; i < 3; i++) {
+        // Check rows for opponent almost-wins
+        if (board[i][0] == opponent && board[i][1] == opponent && board[i][2] == EMPTY) {
+            score -= 25; // Increased penalty for opponent's almost-win
+        } else if (board[i][0] == opponent && board[i][1] == EMPTY && board[i][2] == opponent) {
+            score -= 25; // Increased penalty for opponent's almost-win
+        } else if (board[i][0] == EMPTY && board[i][1] == opponent && board[i][2] == opponent) {
+            score -= 25; // Increased penalty for opponent's almost-win
+        }
+
+        // Check columns for opponent almost-wins
         if (board[0][i] == opponent && board[1][i] == opponent && board[2][i] == EMPTY) {
-            score -= 5; // Adjust score for opponent's almost-win
+            score -= 25; // Increased penalty for opponent's almost-win
         } else if (board[0][i] == opponent && board[1][i] == EMPTY && board[2][i] == opponent) {
-            score -= 5; // Adjust score for opponent's almost-win
+            score -= 25; // Increased penalty for opponent's almost-win
         } else if (board[0][i] == EMPTY && board[1][i] == opponent && board[2][i] == opponent) {
-            score -= 5; // Adjust score for opponent's almost-win
+            score -= 25; // Increased penalty for opponent's almost-win
         }
     }
 
     // Check diagonals for opponent almost-wins
     if (board[0][0] == opponent && board[1][1] == opponent && board[2][2] == EMPTY) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     } else if (board[0][0] == opponent && board[1][1] == EMPTY && board[2][2] == opponent) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     } else if (board[0][0] == EMPTY && board[1][1] == opponent && board[2][2] == opponent) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     }
 
     if (board[0][2] == opponent && board[1][1] == opponent && board[2][0] == EMPTY) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     } else if (board[0][2] == opponent && board[1][1] == EMPTY && board[2][0] == opponent) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     } else if (board[0][2] == EMPTY && board[1][1] == opponent && board[2][0] == opponent) {
-        score -= 5; // Adjust score for opponent's almost-win
+        score -= 25; // Increased penalty for opponent's almost-win
     }
-    
+
     return score;
 }
 
-   
      public static void main(String[] args) {   
         TicTacToe TTT = new TicTacToe();   
     }
