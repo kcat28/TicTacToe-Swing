@@ -335,6 +335,7 @@ public final class TicTacToe implements ActionListener {
     private Move findBestMove(int[][] board, int player) {
         int bestVal = (player == PLAYER_X) ? Integer.MIN_VALUE : Integer.MAX_VALUE; // set value for playerX as lowest aiming to maximize score and playerO as highest aiming to minimize it
         Move bestMove = new Move(-1, -1); // invalid indices as placeholders
+        var bestMoves = new ArrayList<Move>();
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {   //simulation 
@@ -343,18 +344,19 @@ public final class TicTacToe implements ActionListener {
                     int moveVal = minimax(board, 0, false, player); // evaluate board after this move and returns a score (moveVal)
                     board[i][j] = EMPTY; // index is reset to empty to undo move and restore board state
 
-                    if (player == PLAYER_X && moveVal > bestVal) {  // if maximizing player (X) and evaluated move (moveVal) is greater than current bestMove, update bestMove to current cell and bestVal to moveVal
-                        bestMove.row = i;
-                        bestMove.col = j;
-                        bestVal = moveVal;
-                    } else if (player == PLAYER_O && moveVal < bestVal) { // if minimizing player (O) and moveVal is less than bestVal, update bestMove and bestVal accordingly
-                        bestMove.row = i;
-                        bestMove.col = j;
-                        bestVal = moveVal;
-                    }
+                    if ((player == PLAYER_X && moveVal > bestVal) || (player == PLAYER_O && moveVal < bestVal)) {
+                    bestMoves.clear();
+                    bestMoves.add(new Move(i, j));
+                    bestVal = moveVal;
+                } else if (moveVal == bestVal) {
+                    bestMoves.add(new Move(i, j));
+                }
                 }
             }
         }                   // the function loops through 9 possible moves and checks for best value move: 1, 0, -1 accordingly and returns bestMove for current player
+        if (!bestMoves.isEmpty()) {
+        bestMove = bestMoves.get(new Random().nextInt(bestMoves.size()));
+    }
         return bestMove;
     }
     /*
