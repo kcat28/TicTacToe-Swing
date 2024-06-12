@@ -107,6 +107,7 @@ public final class TicTacToe implements ActionListener {
                     if(buttons[i].getText() == ""){
                         buttons[i].setForeground(new Color(255,0,0));
                         buttons[i].setText("X");
+                        check();
                         player1_turn = false;
                         textfield.setText("O turn");
                         check();
@@ -318,12 +319,14 @@ public final class TicTacToe implements ActionListener {
      
     public void aiMove(){
         int[][] board = getBoardState(); // get current 2d array 
+        if (check()) return;
         Move bestMove = findBestMove(board, PLAYER_O); // determines best move by giving minimax the current board and playerO; returns move[row][col]
         buttons[bestMove.row * 3 + bestMove.col].setForeground(new Color(0, 0, 255)); // *3 converts 2d array into 1d array for gui to access e.g., buttons[i] == x
         buttons[bestMove.row * 3 + bestMove.col].setText("O");
+        check();
         player1_turn = true;
         textfield.setText("X turn");
-        check();
+        
      }
      private static class Move { //setup variable
         int row, col;
@@ -420,24 +423,24 @@ private int evaluate(int[][] board, int player) {
     for (int i = 0; i < 3; i++) {
         // Check rows
         if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
-            if (board[i][0] == player) score += 10;
-            else if (board[i][0] == opponent) score -= 20; // Increased penalty for opponent's win
+            if (board[i][0] == player) score += 80;
+            else if (board[i][0] == opponent) score -= 100; // Increased penalty for opponent's win
         }
         // Check columns
         if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
-            if (board[0][i] == player) score += 10;
-            else if (board[0][i] == opponent) score -= 20; // Increased penalty for opponent's win
+            if (board[0][i] == player) score += 80;
+            else if (board[0][i] == opponent) score -= 100; // Increased penalty for opponent's win
         }
     }
 
     // Check diagonals for winning conditions and immediate threats
     if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
-        if (board[0][0] == player) score += 10;
-        else if (board[0][0] == opponent) score -= 20; // Increased penalty for opponent's win
+        if (board[0][0] == player) score += 80;
+        else if (board[0][0] == opponent) score -= 100; // Increased penalty for opponent's win
     }
     if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
-        if (board[0][2] == player) score += 10;
-        else if (board[0][2] == opponent) score -= 20; // Increased penalty for opponent's win
+        if (board[0][2] == player) score += 80;
+        else if (board[0][2] == opponent) score -= 100; // Increased penalty for opponent's win
     }
 
     // Add weights to certain positions
@@ -451,38 +454,38 @@ private int evaluate(int[][] board, int player) {
     for (int i = 0; i < 3; i++) {
         // Check rows for opponent almost-wins
         if (board[i][0] == opponent && board[i][1] == opponent && board[i][2] == EMPTY) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         } else if (board[i][0] == opponent && board[i][1] == EMPTY && board[i][2] == opponent) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         } else if (board[i][0] == EMPTY && board[i][1] == opponent && board[i][2] == opponent) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         }
 
         // Check columns for opponent almost-wins
         if (board[0][i] == opponent && board[1][i] == opponent && board[2][i] == EMPTY) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         } else if (board[0][i] == opponent && board[1][i] == EMPTY && board[2][i] == opponent) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         } else if (board[0][i] == EMPTY && board[1][i] == opponent && board[2][i] == opponent) {
-            score -= 25; // Increased penalty for opponent's almost-win
+            score -= 50; // Increased penalty for opponent's almost-win
         }
     }
 
     // Check diagonals for opponent almost-wins
     if (board[0][0] == opponent && board[1][1] == opponent && board[2][2] == EMPTY) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     } else if (board[0][0] == opponent && board[1][1] == EMPTY && board[2][2] == opponent) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     } else if (board[0][0] == EMPTY && board[1][1] == opponent && board[2][2] == opponent) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     }
 
     if (board[0][2] == opponent && board[1][1] == opponent && board[2][0] == EMPTY) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     } else if (board[0][2] == opponent && board[1][1] == EMPTY && board[2][0] == opponent) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     } else if (board[0][2] == EMPTY && board[1][1] == opponent && board[2][0] == opponent) {
-        score -= 25; // Increased penalty for opponent's almost-win
+        score -= 50; // Increased penalty for opponent's almost-win
     }
 
     return score;
