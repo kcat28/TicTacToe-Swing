@@ -224,7 +224,7 @@ public final class TicTacToe implements ActionListener {
     public void aiMove() {
         int[][] board = getBoardState(); // get current 2d array
         if (checkWin()) return;
-        Move bestMove = findBestMove(board, AI_PLAYER); // determines best move using greedy algorithm
+        Move bestMove = findBestMoveGreedy(board, AI_PLAYER); // determines best move using greedy algorithm
         buttons[bestMove.row * 3 + bestMove.col].setForeground(new Color(0, 0, 255)); // *3 converts 2d array into 1d array for GUI to access e.g., buttons[i] == x
         buttons[bestMove.row * 3 + bestMove.col].setText("O");
         checkWin();
@@ -241,7 +241,7 @@ public final class TicTacToe implements ActionListener {
         }
     }
 
-    private Move findBestMove(int[][] board, int player) {
+    private Move findBestMoveGreedy(int[][] board, int player) {
         // Try to make a winning move
         Move winningMove = makeStrategicMove(board, player);
         if (winningMove != null) return winningMove;
