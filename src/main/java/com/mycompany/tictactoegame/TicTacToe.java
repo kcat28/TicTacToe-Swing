@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 
-public final class TicTacToe implements ActionListener {
+public final class TicTacToe {
 
     Random random = new Random();
     JFrame frame = new JFrame();
@@ -16,19 +16,22 @@ public final class TicTacToe implements ActionListener {
     JPanel button_Panel = new JPanel();
     JLabel textfield = new JLabel();
     JButton[] buttons = new JButton[9];
-    boolean player1_turn;
 
     public static final int PLAYER_X = 1;
     public static final int PLAYER_O = -1;
-    public static final int AI_PLAYER = PLAYER_O;
+    public static final int MINIMAX = PLAYER_O;
+    public static final int GREEDY = PLAYER_X;
     public static final int EMPTY = 0;
     public static final int SIZE = 3;
+    private int CURRENT_PLAYER;
 
     public TicTacToe() {
+        createComponents();
         initializeGame();
+        firstTurn();
     }
 
-    private void initializeGame() {
+    private void createComponents() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 600);
         frame.setResizable(false);
@@ -67,7 +70,6 @@ public final class TicTacToe implements ActionListener {
             button_Panel.add(buttons[i]);
             buttons[i].setFont(new Font("Poppins", Font.BOLD, 120));
             buttons[i].setFocusable(false);
-            buttons[i].addActionListener(this);
         }
 
         title_Panel.add(textfield);
@@ -75,57 +77,62 @@ public final class TicTacToe implements ActionListener {
         frame.add(button_Panel);
         frame.add(menu_Panel, BorderLayout.SOUTH);
         frame.setLocationRelativeTo(null);
+    }
 
-        firstTurn();
+    private void initializeGame() {
+        for (int i = 0; i < 9; i++) {
+            buttons[i].setText("");
+            buttons[i].setBackground(new Color(238, 238, 238));
+        }
     }
 
     private void restartGame() {
-        frame.dispose(); // Dispose the current frame
-        SwingUtilities.invokeLater(() -> new TicTacToe());
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        for (int i = 0; i < 9; i++) {
-            if (e.getSource() == buttons[i]) {
-                if (player1_turn) {
-                    if (buttons[i].getText().isEmpty()) {
-                        buttons[i].setForeground(new Color(255, 0, 0));
-                        buttons[i].setText("X");
-                        checkWin();
-                        player1_turn = false;
-                        textfield.setText("O turn");
-                        checkWin();
-                        if (!player1_turn) {
-                            checkWin();
-                            if (!checkWin()) aiMove();
-                        }
-                    }
-                }
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                initializeGame();
+                firstTurn();
+                return null;
             }
-        }
+
+            @Override
+            protected void done() {
+            }
+        };
+        worker.execute();
     }
 
     public void firstTurn() { //function to decide which one goes first - via random
         try {
-            for (int i = 0; i < 9; i++) {
-                buttons[i].setEnabled(false);
-            }
             Thread.sleep(1000);
-            for (int i = 0; i < 9; i++) {
-                buttons[i].setEnabled(true);
-            }
         } catch (InterruptedException ex) {
             Logger.getLogger(TicTacToe.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         if (random.nextInt(2) == 0) {
-            player1_turn = true;
-            textfield.setText("X turn");
+            CURRENT_PLAYER = PLAYER_X;
         } else {
-            player1_turn = false;
-            textfield.setText("O turn");
-            aiMove();
+            CURRENT_PLAYER = PLAYER_O;
         }
+
+        while (!checkWin()) {
+            textfield.setText(getPlayerSymbol(CURRENT_PLAYER) + " turn");
+
+            aiMove(CURRENT_PLAYER);
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(TicTacToe.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            if (CURRENT_PLAYER == PLAYER_X) {
+                CURRENT_PLAYER = PLAYER_O;
+            } else {
+                CURRENT_PLAYER = PLAYER_X;
+            }
+        }
+
     }
 
     public boolean buttonIs(int index, String value) {
@@ -169,9 +176,6 @@ public final class TicTacToe implements ActionListener {
         buttons[b].setBackground(Color.green);
         buttons[c].setBackground(Color.green);
 
-        for (int i = 0; i < 9; i++) {
-            buttons[i].setEnabled(false);
-        }
         textfield.setText("X Wins");
     }
 
@@ -180,9 +184,6 @@ public final class TicTacToe implements ActionListener {
         buttons[b].setBackground(Color.green);
         buttons[c].setBackground(Color.green);
 
-        for (int i = 0; i < 9; i++) {
-            buttons[i].setEnabled(false);
-        }
         textfield.setText("O Wins");
     }
 
@@ -199,18 +200,18 @@ public final class TicTacToe implements ActionListener {
                     board[i][j] = EMPTY; // index is reset to empty to undo move and restore board state
 
                     if ((player == PLAYER_X && moveVal > bestVal) || (player == PLAYER_O && moveVal < bestVal)) {
-                    bestMoves.clear();
-                    bestMoves.add(new Move(i, j));
-                    bestVal = moveVal;
-                } else if (moveVal == bestVal) {
-                    bestMoves.add(new Move(i, j));
-                }
+                        bestMoves.clear();
+                        bestMoves.add(new Move(i, j));
+                        bestVal = moveVal;
+                    } else if (moveVal == bestVal) {
+                        bestMoves.add(new Move(i, j));
+                    }
                 }
             }
         }                   // the function loops through 9 possible moves and checks for best value move: 1, 0, -1 accordingly and returns bestMove for current player
         if (!bestMoves.isEmpty()) {
-        bestMove = bestMoves.get(new Random().nextInt(bestMoves.size()));
-    }
+            bestMove = bestMoves.get(new Random().nextInt(bestMoves.size()));
+        }
         return bestMove;
     }
     /*
@@ -224,7 +225,6 @@ public final class TicTacToe implements ActionListener {
 
     private int minimax(int[][] board, int depth, boolean isMax, int player) {
         int score = evaluate(board, player);
-
 
         //base cases
         if (score == 10) return score - depth; // Adjusted score based on depth
@@ -261,8 +261,7 @@ public final class TicTacToe implements ActionListener {
     private boolean isMovesLeft(int[][] board) { // checks if there are still possible moves to be made in board
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
-                if (board[i][j] == EMPTY)
-                    return true;
+                if (board[i][j] == EMPTY) return true;
         return false;
     }
 
@@ -296,10 +295,14 @@ public final class TicTacToe implements ActionListener {
 
         // Add weights to certain positions
         if (board[1][1] == player) score += 8; // Increased weight for the center
-        if ((board[0][0] == player && board[2][2] == player) || (board[0][2] == player && board[2][0] == player)) score += 3; // Diagonals
-        if ((board[0][1] == player && board[2][1] == player) || (board[1][0] == player && board[1][2] == player)) score += 2; // Middle rows/columns
-        if ((board[0][0] == player && board[0][2] == player) || (board[2][0] == player && board[2][2] == player)) score += 2; // Top and bottom edges
-        if ((board[0][0] == player && board[2][1] == player) || (board[0][1] == player && board[2][0] == player) || (board[0][2] == player && board[2][1] == player)) score += 1; // Top and bottom corners
+        if ((board[0][0] == player && board[2][2] == player) || (board[0][2] == player && board[2][0] == player))
+            score += 3; // Diagonals
+        if ((board[0][1] == player && board[2][1] == player) || (board[1][0] == player && board[1][2] == player))
+            score += 2; // Middle rows/columns
+        if ((board[0][0] == player && board[0][2] == player) || (board[2][0] == player && board[2][2] == player))
+            score += 2; // Top and bottom edges
+        if ((board[0][0] == player && board[2][1] == player) || (board[0][1] == player && board[2][0] == player) || (board[0][2] == player && board[2][1] == player))
+            score += 1; // Top and bottom corners
 
         // Check for opponent's almost-wins (indicate potential threat)
         for (int i = 0; i < 3; i++) {
@@ -377,15 +380,29 @@ public final class TicTacToe implements ActionListener {
         return board;
     }
 
-    public void aiMove() {
+    public String getPlayerSymbol(int player) {
+        if (player == PLAYER_X) {
+            return "X";
+        } else {
+            return "O";
+        }
+    }
+
+    public void aiMove(int player) {
         int[][] board = getBoardState(); // get current 2d array
         if (checkWin()) return;
-        Move bestMove = findBestMoveGreedy(board, AI_PLAYER); // determines best move using greedy algorithm
-        buttons[bestMove.row * 3 + bestMove.col].setForeground(new Color(0, 0, 255)); // *3 converts 2d array into 1d array for GUI to access e.g., buttons[i] == x
-        buttons[bestMove.row * 3 + bestMove.col].setText("O");
+
+        if (player == MINIMAX) {
+            Move bestMove = findBestMoveMiniMax(board, player); // determines best move using minimax algorithm
+            buttons[bestMove.row * 3 + bestMove.col].setForeground(new Color(255, 0, 0)); // *3 converts 2d array into 1d array for GUI to access e.g., buttons[i] == x
+            buttons[bestMove.row * 3 + bestMove.col].setText(getPlayerSymbol(player));
+        } else {
+            Move bestMove = findBestMoveGreedy(board, player); // determines best move using greedy algorithm
+            buttons[bestMove.row * 3 + bestMove.col].setForeground(new Color(0, 0, 255)); // *3 converts 2d array into 1d array for GUI to access e.g., buttons[i] == x
+            buttons[bestMove.row * 3 + bestMove.col].setText(getPlayerSymbol(player));
+        }
+
         checkWin();
-        player1_turn = true;
-        textfield.setText("X turn");
     }
 
     private static class Move { // setup variable
