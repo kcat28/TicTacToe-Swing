@@ -79,32 +79,38 @@ public final class TicTacToe {
         frame.setLocationRelativeTo(null);
     }
 
-    private void initializeGame() {
-        for (int i = 0; i < 9; i++) {
-            buttons[i].setText("");
-            buttons[i].setBackground(new Color(238, 238, 238));
+private void initializeGame() {
+    for (int i = 0; i < 9; i++) {
+        buttons[i].setText("");
+        buttons[i].setBackground(new Color(238, 238, 238));
+        buttons[i].setEnabled(true); // Ensure buttons are re-enabled
+        buttons[i].setForeground(Color.BLACK); // Reset text color to default
+    }
+    textfield.setText("Tic-Tac-Toe");
+    textfield.setForeground(new Color(25, 255, 0)); // Reset text color to default
+}
+
+private void restartGame() {
+    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+            initializeGame();
+            firstTurn();
+            return null;
         }
-    }
 
-    private void restartGame() {
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                initializeGame();
-                firstTurn();
-                return null;
-            }
+        @Override
+        protected void done() {
+            // Ensure no additional GUI actions are needed upon completion
+        }
+    };
+    worker.execute();
+}
 
-            @Override
-            protected void done() {
-            }
-        };
-        worker.execute();
-    }
 
     public void firstTurn() { //function to decide which one goes first - via random
         try {
-            Thread.sleep(1000);
+            Thread.sleep(400);
         } catch (InterruptedException ex) {
             Logger.getLogger(TicTacToe.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -121,7 +127,7 @@ public final class TicTacToe {
             aiMove(CURRENT_PLAYER);
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(400);
             } catch (InterruptedException ex) {
                 Logger.getLogger(TicTacToe.class.getName()).log(Level.SEVERE, null, ex);
             }
