@@ -187,163 +187,216 @@ public final class TicTacToe {
         textfield.setText("O Wins");
     }
 
-    private Move findBestMoveMiniMax(int[][] board, int player) {
-        int bestVal = (player == PLAYER_X) ? Integer.MIN_VALUE : Integer.MAX_VALUE; // set value for playerX as lowest aiming to maximize score and playerO as highest aiming to minimize it
-        Move bestMove = new Move(-1, -1); // invalid indices as placeholders
-        var bestMoves = new ArrayList<Move>();
+  private Move findBestMoveMiniMax(int[][] board, int player) {
+    int bestVal = Integer.MIN_VALUE;
+    Move bestMove = new Move(-1, -1);
 
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {   //simulation
-                if (board[i][j] == EMPTY) { // iterates the 2d array or board and check if EMPTY, if true, move can be made in the index
-                    board[i][j] = player; // temporarily sets to current player
-                    int moveVal = minimax(board, 0, false, player); // evaluate board after this move and returns a score (moveVal)
-                    board[i][j] = EMPTY; // index is reset to empty to undo move and restore board state
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                board[i][j] = player;
+                int moveVal = minimax(board, 0, false, player, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                board[i][j] = EMPTY;
 
-                    if ((player == PLAYER_X && moveVal > bestVal) || (player == PLAYER_O && moveVal < bestVal)) {
-                        bestMoves.clear();
-                        bestMoves.add(new Move(i, j));
-                        bestVal = moveVal;
-                    } else if (moveVal == bestVal) {
-                        bestMoves.add(new Move(i, j));
-                    }
+                if (moveVal > bestVal) {
+                    bestVal = moveVal;
+                    bestMove = new Move(i, j);
                 }
             }
-        }                   // the function loops through 9 possible moves and checks for best value move: 1, 0, -1 accordingly and returns bestMove for current player
-        if (!bestMoves.isEmpty()) {
-            bestMove = bestMoves.get(new Random().nextInt(bestMoves.size()));
-        }
-        return bestMove;
-    }
-    /*
-    The findBestMove function:
-        Initializes the best value and best move.
-        Iterates over all cells on the board.
-        For each empty cell, it simulates a move and uses the Minimax algorithm to evaluate the move.
-        Updates the best move based on the Minimax evaluation.
-        Returns the best move found.
-    */
-
-    private int minimax(int[][] board, int depth, boolean isMax, int player) {
-        int score = evaluate(board, player);
-
-        //base cases
-        if (score == 10) return score - depth; // Adjusted score based on depth
-        if (score == -10) return score + depth; // Adjusted score based on depth
-        if (!isMovesLeft(board)) return 0;
-
-        if (isMax) {    // maximizing player's turn
-            int best = Integer.MIN_VALUE; // set lowest to try maximize
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    if (board[i][j] == EMPTY) { // if empty, player is able to simulate a move
-                        board[i][j] = player;
-                        best = Math.max(best, minimax(board, depth + 1, !isMax, player)); // Increment depth in tree (recursively call minimax) && compare current best and minimax call value
-                        board[i][j] = EMPTY; // end simulation;  undo move
-                    }
-                }
-            }
-            return best;
-        } else {    // minimizine player's turn
-            int best = Integer.MAX_VALUE;
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    if (board[i][j] == EMPTY) { // if empty, algo consider the cell for simulation
-                        board[i][j] = player == PLAYER_X ? PLAYER_O : PLAYER_X; // if player is X, the simulation is for O vice versa
-                        best = Math.min(best, minimax(board, depth + 1, !isMax, player)); // Increment depth ...
-                        board[i][j] = EMPTY;
-                    }
-                }
-            }
-            return best;
         }
     }
 
-    private boolean isMovesLeft(int[][] board) { // checks if there are still possible moves to be made in board
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                if (board[i][j] == EMPTY) return true;
-        return false;
-    }
+    return bestMove;
+}
 
-    private int evaluate(int[][] board, int player) {
-        int score = 0;
-        int opponent = (player == PLAYER_X) ? PLAYER_O : PLAYER_X;
+private int minimax(int[][] board, int depth, boolean isMax, int player, int alpha, int beta) {
+    int score = evaluate(board, player);
 
-        // Check rows and columns for winning conditions and immediate threats
-        for (int i = 0; i < 3; i++) {
-            // Check rows
-            if (board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
-                if (board[i][0] == player) score += 80;
-                else if (board[i][0] == opponent) score -= 100; // Increased penalty for opponent's win
-            }
-            // Check columns
-            if (board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
-                if (board[0][i] == player) score += 80;
-                else if (board[0][i] == opponent) score -= 100; // Increased penalty for opponent's win
-            }
-        }
-
-        // Check diagonals for winning conditions and immediate threats
-        if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
-            if (board[0][0] == player) score += 80;
-            else if (board[0][0] == opponent) score -= 100; // Increased penalty for opponent's win
-        }
-        if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
-            if (board[0][2] == player) score += 80;
-            else if (board[0][2] == opponent) score -= 100; // Increased penalty for opponent's win
-        }
-
-        // Add weights to certain positions
-        if (board[1][1] == player) score += 8; // Increased weight for the center
-        if ((board[0][0] == player && board[2][2] == player) || (board[0][2] == player && board[2][0] == player))
-            score += 3; // Diagonals
-        if ((board[0][1] == player && board[2][1] == player) || (board[1][0] == player && board[1][2] == player))
-            score += 2; // Middle rows/columns
-        if ((board[0][0] == player && board[0][2] == player) || (board[2][0] == player && board[2][2] == player))
-            score += 2; // Top and bottom edges
-        if ((board[0][0] == player && board[2][1] == player) || (board[0][1] == player && board[2][0] == player) || (board[0][2] == player && board[2][1] == player))
-            score += 1; // Top and bottom corners
-
-        // Check for opponent's almost-wins (indicate potential threat)
-        for (int i = 0; i < 3; i++) {
-            // Check rows for opponent almost-wins
-            if (board[i][0] == opponent && board[i][1] == opponent && board[i][2] == EMPTY) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            } else if (board[i][0] == opponent && board[i][1] == EMPTY && board[i][2] == opponent) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            } else if (board[i][0] == EMPTY && board[i][1] == opponent && board[i][2] == opponent) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            }
-
-            // Check columns for opponent almost-wins
-            if (board[0][i] == opponent && board[1][i] == opponent && board[2][i] == EMPTY) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            } else if (board[0][i] == opponent && board[1][i] == EMPTY && board[2][i] == opponent) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            } else if (board[0][i] == EMPTY && board[1][i] == opponent && board[2][i] == opponent) {
-                score -= 50; // Increased penalty for opponent's almost-win
-            }
-        }
-
-        // Check diagonals for opponent almost-wins
-        if (board[0][0] == opponent && board[1][1] == opponent && board[2][2] == EMPTY) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        } else if (board[0][0] == opponent && board[1][1] == EMPTY && board[2][2] == opponent) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        } else if (board[0][0] == EMPTY && board[1][1] == opponent && board[2][2] == opponent) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        }
-
-        if (board[0][2] == opponent && board[1][1] == opponent && board[2][0] == EMPTY) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        } else if (board[0][2] == opponent && board[1][1] == EMPTY && board[2][0] == opponent) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        } else if (board[0][2] == EMPTY && board[1][1] == opponent && board[2][0] == opponent) {
-            score -= 50; // Increased penalty for opponent's almost-win
-        }
-
+    if (score == 1000 || score == -1000) { // Immediate win or loss
         return score;
     }
+
+    if (!isMovesLeft(board)) {
+        return 0; // Tie state
+    }
+
+    if (depth >= 6) { // Depth limit (adjust as needed)
+        return score; // Return current evaluation score
+    }
+
+    int opponent = (player == PLAYER_X) ? PLAYER_O : PLAYER_X;
+
+    if (isMax) { // Maximizing player's turn
+        int best = Integer.MIN_VALUE;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] == EMPTY) {
+                    board[i][j] = player;
+                    best = Math.max(best, minimax(board, depth + 1, !isMax, player, alpha, beta));
+                    alpha = Math.max(alpha, best);
+                    board[i][j] = EMPTY;
+                    if (beta <= alpha) {
+                        break; // Beta cutoff
+                    }
+                }
+            }
+        }
+        return best;
+    } else { // Minimizing player's turn
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (board[i][j] == EMPTY) {
+                    board[i][j] = opponent;
+                    best = Math.min(best, minimax(board, depth + 1, !isMax, player, alpha, beta));
+                    beta = Math.min(beta, best);
+                    board[i][j] = EMPTY;
+                    if (beta <= alpha) {
+                        break; // Alpha cutoff
+                    }
+                }
+            }
+        }
+        return best;
+    }
+}
+
+
+private int evaluate(int[][] board, int player) {
+    int opponent = (player == PLAYER_X) ? PLAYER_O : PLAYER_X;
+    int score = 0;
+
+    // Evaluate rows and columns
+    for (int i = 0; i < SIZE; i++) {
+        // Rows
+        score += evaluateLine(board[i][0], board[i][1], board[i][2], player, opponent);
+        // Columns
+        score += evaluateLine(board[0][i], board[1][i], board[2][i], player, opponent);
+    }
+
+    // Evaluate diagonals
+    score += evaluateLine(board[0][0], board[1][1], board[2][2], player, opponent);
+    score += evaluateLine(board[0][2], board[1][1], board[2][0], player, opponent);
+
+    // If an immediate win or loss is detected, return that score directly
+    if (score == 1000 || score == -1000) {
+        return score;
+    }
+
+    // Add weights for strategic positions
+    score += evaluatePositionalWeights(board, player);
+
+    return score;
+}
+
+private int evaluateLine(int cell1, int cell2, int cell3, int player, int opponent) {
+    int score = 0;
+
+    // Evaluate for player
+    if (cell1 == player && cell2 == player && cell3 == player) {
+        return 1000; // Player wins
+    } else if (cell1 == opponent && cell2 == opponent && cell3 == opponent) {
+        return -1000; // Opponent wins
+    }
+
+    return score;
+}
+
+
+private int evaluatePositionalWeights(int[][] board, int player) {
+    int score = 0;
+    int center = board[1][1];
+    int corners = board[0][0] + board[0][2] + board[2][0] + board[2][2];
+    int edges = board[0][1] + board[1][0] + board[1][2] + board[2][1];
+
+    // Evaluate center control
+    if (center == player) {
+        score += 50;
+    }
+
+    // Evaluate corner control
+    if (corners > 0) {
+        score += 10 * corners;
+    }
+
+    // Evaluate edge control
+    if (edges > 0) {
+        score += 5 * edges;
+    }
+
+    // Evaluate forking opportunities
+    int forkCount = countForks(board, player);
+    score += 100 * forkCount;
+
+    return score;
+}
+
+private int countForks(int[][] board, int player) {
+    int forkCount = 0;
+
+    // Check all possible pairs of empty cells
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (board[i][j] == EMPTY) {
+                board[i][j] = player; // Place player's move temporarily
+                int threats = countThreats(board, player); // Count resulting threats
+                board[i][j] = EMPTY; // Reset cell
+
+                if (threats >= 2) {
+                    forkCount++;
+                }
+            }
+        }
+    }
+
+    return forkCount;
+}
+
+private int countThreats(int[][] board, int player) {
+    int threatCount = 0;
+
+    // Check rows and columns
+    for (int i = 0; i < SIZE; i++) {
+        if ((board[i][0] == player && board[i][1] == player && board[i][2] == EMPTY) ||
+            (board[i][0] == player && board[i][2] == player && board[i][1] == EMPTY) ||
+            (board[i][1] == player && board[i][2] == player && board[i][0] == EMPTY)) {
+            threatCount++;
+        }
+        if ((board[0][i] == player && board[1][i] == player && board[2][i] == EMPTY) ||
+            (board[0][i] == player && board[2][i] == player && board[1][i] == EMPTY) ||
+            (board[1][i] == player && board[2][i] == player && board[0][i] == EMPTY)) {
+            threatCount++;
+        }
+    }
+
+    // Check diagonals
+    if ((board[0][0] == player && board[1][1] == player && board[2][2] == EMPTY) ||
+        (board[0][0] == player && board[2][2] == player && board[1][1] == EMPTY) ||
+        (board[1][1] == player && board[2][2] == player && board[0][0] == EMPTY)) {
+        threatCount++;
+    }
+    if ((board[0][2] == player && board[1][1] == player && board[2][0] == EMPTY) ||
+        (board[0][2] == player && board[2][0] == player && board[1][1] == EMPTY) ||
+        (board[1][1] == player && board[2][0] == player && board[0][2] == EMPTY)) {
+        threatCount++;
+    }
+
+    return threatCount;
+}
+
+
+
+private boolean isMovesLeft(int[][] board) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == EMPTY) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 
     public void setBoardTie() {
         textfield.setText("It's a Tie!");
