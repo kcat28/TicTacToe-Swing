@@ -24,6 +24,17 @@ public final class TicTacToe {
     public static final int EMPTY = 0;
     public static final int SIZE = 3;
     private int CURRENT_PLAYER;
+    
+    private int minimaxWins = 0;
+    private int greedyWins = 0;
+    private int draws = 0;
+    private int totalGames = 0;
+    
+    private JLabel minimaxLabel;
+    private JLabel greedyLabel;
+    private JLabel drawsLabel;
+    private JLabel totalGamesLabel;
+
 
     public TicTacToe() {
         createComponents();
@@ -32,52 +43,89 @@ public final class TicTacToe {
     }
 
     private void createComponents() {
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 600);
-        frame.setResizable(false);
-        frame.getContentPane().setBackground(new Color(50, 50, 50));
-        frame.setLayout(new BorderLayout());
-        frame.setVisible(true);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setSize(600, 700); // Increased height to accommodate scoreboard
+    frame.setResizable(false);
+    frame.getContentPane().setBackground(new Color(50, 50, 50));
+    frame.setLayout(new BorderLayout());
+    frame.setVisible(true);
 
-        textfield.setBackground(new Color(25, 25, 25));
-        textfield.setForeground(new Color(25, 255, 0));
-        textfield.setFont(new Font("Poppins", Font.BOLD, 60));
-        textfield.setHorizontalAlignment(JLabel.CENTER);
-        textfield.setText("Tic-Tac-Toe");
-        textfield.setOpaque(true);
+    textfield.setBackground(new Color(25, 25, 25));
+    textfield.setForeground(new Color(25, 255, 0));
+    textfield.setFont(new Font("Poppins", Font.BOLD, 60));
+    textfield.setHorizontalAlignment(JLabel.CENTER);
+    textfield.setText("Tic-Tac-Toe");
+    textfield.setOpaque(true);
 
-        menu_Panel.setLayout(new FlowLayout());
-        menu_Panel.setBounds(0, 0, 800, 100);
-        JButton retry = new JButton("Retry again") {{
-            setFocusable(false);
-            addActionListener(e -> restartGame());
-        }};
-        JButton quit = new JButton("Quit") {{
-            setFocusable(false);
-            addActionListener(e -> frame.dispose());
-        }};
-        menu_Panel.add(retry);
-        menu_Panel.add(quit);
+    JPanel scorePanel = new JPanel();
+    scorePanel.setLayout(new GridLayout(4, 1));
+    scorePanel.setBackground(new Color(50, 50, 50));
 
-        title_Panel.setLayout(new BorderLayout());
-        title_Panel.setBounds(0, 0, 800, 100);
+    minimaxLabel = new JLabel("Minimax Wins: 0");
+    minimaxLabel.setForeground(new Color(25, 255, 0));
+    minimaxLabel.setFont(new Font("Poppins", Font.BOLD, 20));
+    minimaxLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        button_Panel.setLayout(new GridLayout(3, 3));
-        button_Panel.setBackground(new Color(150, 150, 150));
+    greedyLabel = new JLabel("Greedy Wins: 0");
+    greedyLabel.setForeground(new Color(25, 255, 0));
+    greedyLabel.setFont(new Font("Poppins", Font.BOLD, 20));
+    greedyLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        for (int i = 0; i < 9; i++) {
-            buttons[i] = new JButton();
-            button_Panel.add(buttons[i]);
-            buttons[i].setFont(new Font("Poppins", Font.BOLD, 120));
-            buttons[i].setFocusable(false);
-        }
+    drawsLabel = new JLabel("Draws: 0");
+    drawsLabel.setForeground(new Color(25, 255, 0));
+    drawsLabel.setFont(new Font("Poppins", Font.BOLD, 20));
+    drawsLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        title_Panel.add(textfield);
-        frame.add(title_Panel, BorderLayout.NORTH);
-        frame.add(button_Panel);
-        frame.add(menu_Panel, BorderLayout.SOUTH);
-        frame.setLocationRelativeTo(null);
+    totalGamesLabel = new JLabel("Total Games: 0");
+    totalGamesLabel.setForeground(new Color(25, 255, 0));
+    totalGamesLabel.setFont(new Font("Poppins", Font.BOLD, 20));
+    totalGamesLabel.setHorizontalAlignment(JLabel.CENTER);
+
+    scorePanel.add(minimaxLabel);
+    scorePanel.add(greedyLabel);
+    scorePanel.add(drawsLabel);
+    scorePanel.add(totalGamesLabel);
+
+    title_Panel.setLayout(new BorderLayout());
+    title_Panel.setBounds(0, 0, 800, 150); // Adjusted to fit the scoreboard
+    title_Panel.add(textfield, BorderLayout.NORTH);
+    title_Panel.add(scorePanel, BorderLayout.SOUTH);
+
+    button_Panel.setLayout(new GridLayout(3, 3));
+    button_Panel.setBackground(new Color(150, 150, 150));
+
+    for (int i = 0; i < 9; i++) {
+        buttons[i] = new JButton();
+        button_Panel.add(buttons[i]);
+        buttons[i].setFont(new Font("Poppins", Font.BOLD, 120));
+        buttons[i].setFocusable(false);
     }
+
+    // Add retry and quit buttons to menu_Panel
+    JButton retryButton = new JButton("Retry");
+    retryButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            restartGame();
+        }
+    });
+    menu_Panel.add(retryButton);
+
+    JButton quitButton = new JButton("Quit");
+    quitButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.exit(0);
+        }
+    });
+    menu_Panel.add(quitButton);
+
+    frame.add(title_Panel, BorderLayout.NORTH);
+    frame.add(button_Panel);
+    frame.add(menu_Panel, BorderLayout.SOUTH);
+    frame.setLocationRelativeTo(null);
+}
+
 
 private void initializeGame() {
     for (int i = 0; i < 9; i++) {
@@ -89,6 +137,14 @@ private void initializeGame() {
     textfield.setText("Tic-Tac-Toe");
     textfield.setForeground(new Color(25, 255, 0)); // Reset text color to default
 }
+
+private void updateScoreboard() {
+    minimaxLabel.setText("Minimax Wins: " + minimaxWins);
+    greedyLabel.setText("Greedy Wins: " + greedyWins);
+    drawsLabel.setText("Draws: " + draws);
+    totalGamesLabel.setText("Total Games: " + totalGames);
+}
+
 
 private void restartGame() {
     SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -140,6 +196,7 @@ private void restartGame() {
         }
 
     }
+    
 
     public boolean buttonIs(int index, String value) {
         return buttons[index].getText().equals(value);
@@ -181,16 +238,20 @@ private void restartGame() {
         buttons[a].setBackground(Color.green);
         buttons[b].setBackground(Color.green);
         buttons[c].setBackground(Color.green);
-
         textfield.setText("X Wins");
+        greedyWins++;
+        totalGames++;
+        updateScoreboard();
     }
 
     public void setOWin(int a, int b, int c) {
         buttons[a].setBackground(Color.green);
         buttons[b].setBackground(Color.green);
         buttons[c].setBackground(Color.green);
-
         textfield.setText("O Wins");
+        minimaxWins++;
+        totalGames++;
+        updateScoreboard();
     }
 
   private Move findBestMoveMiniMax(int[][] board, int player) {
@@ -410,6 +471,9 @@ private boolean isMovesLeft(int[][] board) {
             buttons[i].setBackground(Color.yellow);
             buttons[i].setEnabled(false);
         }
+         draws++;
+         totalGames++;
+         updateScoreboard();
     }
 
     private boolean isBoardFull() {
@@ -461,7 +525,7 @@ private boolean isMovesLeft(int[][] board) {
             buttons[bestMove.row * 3 + bestMove.col].setText(getPlayerSymbol(player));
         }
 
-        checkWin();
+       // checkWin();
     }
 
     private static class Move { // setup variable
